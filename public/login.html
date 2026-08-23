@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EventHive - Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-card { background: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 460px; width: 100%; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="bg-primary text-white text-center p-4">
+      <h3 class="fw-bold mb-0"><i class="bi bi-calendar-event me-2"></i>EventHive</h3>
+      <small class="text-white-50">Campus Event & Fest Portal</small>
+    </div>
+    <div class="p-4 p-md-5">
+      <form id="loginForm">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Login Role</label>
+          <select class="form-select" id="role" required>
+            <option value="" disabled selected>Select Role</option>
+            <option value="student">Student</option>
+            <option value="club">Club Organizer</option>
+            <option value="faculty">Faculty Coordinator</option>
+            <option value="hod">HOD / Admin Authority</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">College Email</label>
+          <input type="email" class="form-control" id="email" placeholder="name@college.edu" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password</label>
+          <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+        </div>
+        <div class="alert alert-light border p-2 small text-muted mb-3">
+          <strong>Faculty Logins:</strong><br>
+          • NSS: <code>nss.faculty@college.edu</code> (Pass: <code>nss@123</code>)<br>
+          • Sports: <code>sports.faculty@college.edu</code> (Pass: <code>sports@123</code>)<br>
+          • Tech: <code>tech.faculty@college.edu</code> (Pass: <code>tech@123</code>)<br>
+          • Cultural: <code>cultural.faculty@college.edu</code> (Pass: <code>cultural@123</code>)<br>
+          • Robotics: <code>robotics.faculty@college.edu</code> (Pass: <code>robotics@123</code>)<br>
+          <strong>HOD:</strong> <code>hod@college.edu</code> (Pass: <code>hod@123</code>)
+        </div>
+        <button type="submit" class="btn btn-primary w-100 fw-semibold mb-3">Sign In</button>
+        <div class="text-center small">New Student or Club? <a href="register.html">Register here</a></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: document.getElementById('role').value,
+            email: document.getElementById('email').value.trim().toLowerCase(),
+            password: document.getElementById('password').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert('❌ ' + data.error);
+
+        sessionStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem('userRole', data.user.role);
+        sessionStorage.setItem('userIdentifier', data.user.email);
+        sessionStorage.setItem('userData', JSON.stringify(data.user));
+
+        window.location.replace(`pages/${data.user.role}/dashboard.html`);
+      } catch (err) {
+        alert('Server Connection Failed. Make sure Node.js server is running.');
+      }
+    });
+  </script>
+</body>
+</html>

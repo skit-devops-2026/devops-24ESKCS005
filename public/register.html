@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EventHive - Register</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .reg-card { background: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 500px; width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="card reg-card p-4 p-md-5">
+    <h3 class="fw-bold text-primary mb-1">Create Account</h3>
+    <p class="text-muted small mb-4">Register for EventHive Student & Club Services</p>
+    <form id="regForm">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Register As</label>
+        <select class="form-select" id="rRole" required>
+          <option value="student">Student</option>
+          <option value="club">Club Organizer</option>
+        </select>
+      </div>
+      <div class="mb-3"><label class="form-label fw-semibold">Full Name / Club Name</label><input type="text" class="form-control" id="rName" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">College Email</label><input type="email" class="form-control" id="rEmail" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Roll Number / Club Code</label><input type="text" class="form-control" id="rId" placeholder="e.g. 21BCS045" required></div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Branch / Domain</label>
+        <select class="form-select" id="rDomain" required>
+          <option value="CSE">CSE</option><option value="IT">IT</option><option value="ECE">ECE</option><option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+        </select>
+      </div>
+      <div class="mb-3"><label class="form-label fw-semibold">Password</label><input type="password" class="form-control" id="rPass" required></div>
+      <button type="submit" class="btn btn-primary w-100 fw-semibold mb-3">Register</button>
+      <div class="text-center small"><a href="login.html">Back to Login</a></div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: document.getElementById('rRole').value,
+            name: document.getElementById('rName').value,
+            email: document.getElementById('rEmail').value.trim().toLowerCase(),
+            uniqueId: document.getElementById('rId').value,
+            domain: document.getElementById('rDomain').value,
+            password: document.getElementById('rPass').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert('❌ ' + data.error);
+        alert('✅ Registration Successful! Please sign in.');
+        window.location.replace('login.html');
+      } catch (err) {
+        alert('Server error. Check MongoDB connection.');
+      }
+    });
+  </script>
+</body>
+</html>
