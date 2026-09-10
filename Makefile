@@ -19,7 +19,7 @@ run:
 
 # Needed from M4 onwards
 docker-build:
-	@echo "TODO: docker build for frontend and backend" && exit 1
+	docker build -t eventhive:latest .
 
 docker-up:
 	docker compose up --build
