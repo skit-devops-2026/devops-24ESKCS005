@@ -182,6 +182,39 @@ For setup, PromQL queries, and Grafana dashboard import steps, see [docs/monitor
 
 ---
 
+## Kubernetes Deployment (M7)
+
+EventHive provides declarative Kubernetes manifests under [`k8s/`](k8s/) for automated cluster deployment, scaling, and self-healing.
+
+### Image & Registry
+- **Image Name**: `ghcr.io/skit-devops-2026/devops-24eskcs005:latest` (or local tag `eventhive:latest`)
+- **Probes**: Configured with Liveness and Readiness probes against `GET /health`
+
+### Deployment Commands
+```bash
+# Apply all Kubernetes manifests using kustomize
+kubectl apply -k k8s/
+
+# Or apply manifests individually
+kubectl apply -f k8s/mongodb.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+```
+
+### Verification Commands
+```bash
+# Verify Pods are Running and Ready
+kubectl get pods
+
+# Verify Deployments and Services
+kubectl get deployments
+kubectl get services
+```
+
+Complete setup instructions for local `kind` or `k3d` clusters and NodePort access are documented in [docs/kubernetes.md](docs/kubernetes.md).
+
+---
+
 ## Live URL
 
 - **Deployment Status**: Containerized stack configured and verified.
@@ -197,3 +230,4 @@ For setup, PromQL queries, and Grafana dashboard import steps, see [docs/monitor
 - [x] **M4 (Jenkins CI Pipeline)**: Completed via PR #4 (`Jenkinsfile`).
 - [x] **M5 (Docker Containerization)**: Completed via PR #5 (`Dockerfile`, `docker-compose.yml`, `.dockerignore`).
 - [x] **M6 (Deployment & Prometheus Monitoring)**: Completed via PR #6 (`monitoring/prometheus.yml`, `monitoring/grafana_dashboard.json`, `/metrics`, `docs/`).
+- [x] **M7 (Kubernetes Deployment)**: Completed via PR #7 (`k8s/deployment.yaml`, `k8s/service.yaml`, `k8s/mongodb.yaml`, `docs/kubernetes.md`).
