@@ -15,9 +15,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eventhive')
-  .then(() => console.log('✅ Connected to MongoDB EventHive Database'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err));
+if (process.env.NODE_ENV !== 'test') {
+  mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eventhive')
+    .then(() => {
+      console.log('✅ Connected to MongoDB EventHive Database');
+      seedDefaultSystemData();
+    })
+    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+}
 
 // --- AUTH ROUTES ---
 app.post('/api/auth/register', async (req, res) => {
@@ -259,7 +264,11 @@ async function seedDefaultSystemData() {
     console.log('🌱 Seeded 5 Initial Live Campus Events.');
   }
 }
-seedDefaultSystemData();
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 EventHive Full-Stack Server running on http://localhost:${PORT}`));
+if (require.main === module) {
+  seedDefaultSystemData();
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`🚀 EventHive Full-Stack Server running on http://localhost:${PORT}`));
+}
+
+module.exports = app;
