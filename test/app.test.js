@@ -83,6 +83,26 @@ describe('EventHive Application Test Suite', () => {
       const res = await fetchNoKeepAlive(`${baseUrl}/api/nonexistent-endpoint-test`);
       assert.strictEqual(res.status, 404);
     });
+
+    it('serves health check endpoint (GET /health)', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/health`);
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.status, 'healthy');
+      assert.ok(typeof data.uptime === 'number');
+      assert.ok(data.timestamp);
+    });
+
+    it('serves Prometheus metrics endpoint (GET /metrics)', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/metrics`);
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.headers.get('content-type').includes('text/plain'));
+      const text = await res.text();
+      assert.ok(text.includes('http_requests_total'));
+      assert.ok(text.includes('nodejs_process_uptime_seconds'));
+      assert.ok(text.includes('nodejs_process_resident_memory_bytes'));
+      assert.ok(text.includes('eventhive_db_connection_status'));
+    });
   });
 
   describe('Server Configuration & Middleware', () => {

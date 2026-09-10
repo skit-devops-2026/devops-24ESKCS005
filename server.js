@@ -14,6 +14,92 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- PROMETHEUS METRICS TRACKING ---
+const httpMetrics = {
+  totalRequests: 0,
+  requestsByMethodStatus: {},
+  totalDurationMs: 0
+};
+
+app.use((req, res, next) => {
+  const startHr = process.hrtime();
+  res.on('finish', () => {
+    httpMetrics.totalRequests++;
+    const key = `method="${req.method}",status="${res.statusCode}"`;
+    httpMetrics.requestsByMethodStatus[key] = (httpMetrics.requestsByMethodStatus[key] || 0) + 1;
+    const diff = process.hrtime(startHr);
+    const durationMs = (diff[0] * 1e3) + (diff[1] * 1e-6);
+    httpMetrics.totalDurationMs += durationMs;
+  });
+  next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  res.json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    database: states[dbState] || 'unknown'
+  });
+});
+
+// Prometheus metrics endpoint
+app.get('/metrics', (req, res) => {
+  const mem = process.memoryUsage();
+  const cpu = process.cpuUsage();
+  const uptimeSeconds = process.uptime();
+  const dbState = mongoose.connection.readyState === 1 ? 1 : 0;
+
+  let metrics = '';
+  metrics += '# HELP http_requests_total Total number of HTTP requests handled\n';
+  metrics += '# TYPE http_requests_total counter\n';
+  if (Object.keys(httpMetrics.requestsByMethodStatus).length === 0) {
+    metrics += 'http_requests_total 0\n';
+  } else {
+    for (const [labels, count] of Object.entries(httpMetrics.requestsByMethodStatus)) {
+      metrics += `http_requests_total{${labels}} ${count}\n`;
+    }
+  }
+
+  metrics += '# HELP http_request_duration_seconds_total Total duration of HTTP requests in seconds\n';
+  metrics += '# TYPE http_request_duration_seconds_total counter\n';
+  metrics += `http_request_duration_seconds_total ${(httpMetrics.totalDurationMs / 1000).toFixed(6)}\n`;
+
+  metrics += '# HELP nodejs_process_uptime_seconds Process uptime in seconds\n';
+  metrics += '# TYPE nodejs_process_uptime_seconds gauge\n';
+  metrics += `nodejs_process_uptime_seconds ${uptimeSeconds.toFixed(2)}\n`;
+
+  metrics += '# HELP nodejs_process_resident_memory_bytes Resident memory size in bytes\n';
+  metrics += '# TYPE nodejs_process_resident_memory_bytes gauge\n';
+  metrics += `nodejs_process_resident_memory_bytes ${mem.rss}\n`;
+
+  metrics += '# HELP nodejs_process_heap_used_bytes Heap memory used in bytes\n';
+  metrics += '# TYPE nodejs_process_heap_used_bytes gauge\n';
+  metrics += `nodejs_process_heap_used_bytes ${mem.heapUsed}\n`;
+
+  metrics += '# HELP nodejs_process_heap_total_bytes Total heap allocated in bytes\n';
+  metrics += '# TYPE nodejs_process_heap_total_bytes gauge\n';
+  metrics += `nodejs_process_heap_total_bytes ${mem.heapTotal}\n`;
+
+  metrics += '# HELP nodejs_process_cpu_user_seconds_total Total user CPU time spent in seconds\n';
+  metrics += '# TYPE nodejs_process_cpu_user_seconds_total counter\n';
+  metrics += `nodejs_process_cpu_user_seconds_total ${(cpu.user / 1e6).toFixed(6)}\n`;
+
+  metrics += '# HELP nodejs_process_cpu_system_seconds_total Total system CPU time spent in seconds\n';
+  metrics += '# TYPE nodejs_process_cpu_system_seconds_total counter\n';
+  metrics += `nodejs_process_cpu_system_seconds_total ${(cpu.system / 1e6).toFixed(6)}\n`;
+
+  metrics += '# HELP eventhive_db_connection_status Database connection status (1 for connected, 0 for disconnected)\n';
+  metrics += '# TYPE eventhive_db_connection_status gauge\n';
+  metrics += `eventhive_db_connection_status ${dbState}\n`;
+
+  res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+  res.send(metrics);
+});
+
 // Connect to MongoDB
 if (process.env.NODE_ENV !== 'test') {
   mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eventhive')
