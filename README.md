@@ -136,6 +136,21 @@ make run
 ```
 The server will start on `http://localhost:5000` (or the configured `PORT`).
 
+### 5. Default Seed Accounts (Local Development)
+
+When launching with an empty database, the application automatically seeds the following test accounts for local verification:
+
+| Role | Name | Email | Password | Domain / Notes |
+|---|---|---|---|---|
+| Faculty Mentor | Dr. Meenakshi | `nss.faculty@college.edu` | `nss@123` | NSS Domain Portfolio |
+| Faculty Mentor | Coach Rakesh | `sports.faculty@college.edu` | `sports@123` | Sports Domain Portfolio |
+| Faculty Mentor | Dr. A.K. Verma | `tech.faculty@college.edu` | `tech@123` | Tech Domain Portfolio |
+| Faculty Mentor | Prof. Priya Sen | `cultural.faculty@college.edu` | `cultural@123` | Non-Tech Domain Portfolio |
+| Faculty Mentor | Prof. Vikram Malhotra | `robotics.faculty@college.edu` | `robotics@123` | Robotics Domain Portfolio |
+| Head of Department | Head of Department | `hod@college.edu` | `hod@123` | Governance & Approvals |
+
+New Student and Club Coordinator accounts can be registered directly via `/register.html` and accessed from `/login.html`.
+
 ---
 
 ## Live URL
