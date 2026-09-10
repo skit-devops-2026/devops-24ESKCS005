@@ -9,7 +9,7 @@ install:
 	npm install
 
 test:
-	@echo "TODO: run the test suite" && exit 1
+	npm test
 
 build:
 	@echo "No build step required for Node.js application"
