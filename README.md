@@ -1,0 +1,159 @@
+# EventHive — Campus Event Management Portal
+
+> **DevOps Semester Project — Milestone 1 (Phase 1: Repository Hygiene & Scaffolding)**
+>
+> **Course Repository:** `skit-devops-2026/devops-24ESKCS005`
+
+---
+
+## Author
+
+| Roll No. | Name | GitHub username |
+|---|---|---|
+| 24ESKCS005 | Aashish Kumawat | Aashish39069 |
+
+---
+
+## About
+
+**EventHive** is a full-stack campus event management and academic governance portal designed for higher-education institutions. The platform streamlines campus event proposals, multi-tier approvals across faculty mentors and Heads of Departments (HOD), student event discovery, and digital pass registration.
+
+The system connects four key institutional roles:
+- **Students**: Discover verified campus events, register individually or in teams, and track confirmed registration pass IDs.
+- **Student Clubs / Coordinators**: Submit detailed event proposals across domains with budgets, venues, and descriptions.
+- **Faculty Mentors**: Review, endorse, or request revisions for proposals within their domain portfolio.
+- **Head of Department (HOD)**: Final governance authority to approve venues, allocate campus resources, and publish events live.
+
+---
+
+## Tech Stack
+
+- **Frontend**: Responsive HTML5, CSS3, JavaScript dashboards statically served via Express
+- **Backend**: Node.js, Express.js (v4.19.2)
+- **Database**: MongoDB with Mongoose ODM (v8.3.1)
+- **Security & Utilities**: `bcryptjs` (v2.4.3) for credential hashing, `cors` (v2.8.5), `dotenv` (v16.4.5)
+
+---
+
+## Repository Structure
+
+```
+devops-24ESKCS005/
+├── .github/
+│   └── workflows/
+│       └── ci.yml             # GitHub Actions CI workflow (M1 hygiene checks)
+├── docs/                      # Documentation and architectural specs (scaffolding)
+│   └── .gitkeep
+├── k8s/                       # Kubernetes deployment manifests (scaffolding)
+│   └── .gitkeep
+├── monitoring/                # Prometheus & Grafana monitoring configs (scaffolding)
+│   └── .gitkeep
+├── models/                    # Mongoose data schemas
+│   ├── Event.js               # Event schema with approval workflow states
+│   ├── Registration.js        # Registration schema with pass IDs and team details
+│   └── User.js                # User schema with roles and domain assignments
+├── public/                    # Frontend static portals and pages
+│   ├── login.html             # Unified login page
+│   ├── register.html          # Registration page
+│   └── pages/
+│       ├── club/              # Club coordinator dashboard
+│       ├── faculty/           # Faculty mentor review dashboard
+│       ├── hod/               # HOD governance dashboard
+│       └── student/           # Student discovery and registration dashboard
+├── scripts/                   # Automation and verification scripts
+│   └── hygiene.sh             # Repository hygiene validation script
+├── .env.example               # Sample environment configuration template
+├── .gitignore                 # Excluded dependencies, secrets, and build artifacts
+├── Makefile                   # Standardized build and lifecycle targets
+├── package.json               # Node.js dependencies and run scripts
+├── package-lock.json          # Dependency lockfile
+├── README.md                  # Project documentation and setup guide
+└── server.js                  # Application server entrypoint and REST APIs
+```
+
+---
+
+## REST API Reference
+
+### Authentication (`/api/auth`)
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user (`name`, `email`, `password`, `role`, `uniqueId`, `domain`, `year`) |
+| `POST` | `/api/auth/login` | Authenticate user credentials and return profile session |
+
+### Event Management (`/api/events`)
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/events/live` | Retrieve all approved live campus events |
+| `POST` | `/api/events/propose` | Submit a new event proposal for mentor review |
+| `GET` | `/api/events/club/all` | List all events proposed by clubs |
+| `GET` | `/api/events/faculty/:domain` | List domain-specific events pending faculty review |
+| `PATCH` | `/api/events/:id/faculty-status` | Update faculty approval status (`Approved` / `Rejected`) |
+| `GET` | `/api/events/hod/proposals` | List faculty-approved proposals awaiting HOD action |
+| `PATCH` | `/api/events/:id/hod-status` | HOD final decision & venue assignment; publishes live |
+
+### Registrations (`/api/registrations`)
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/registrations/register` | Register for an event and generate a unique Pass ID |
+| `GET` | `/api/registrations/student/:roll` | Lookup registration history by student roll number |
+| `GET` | `/api/registrations/faculty/:domain` | View registrations filtered by category domain |
+| `GET` | `/api/registrations/all` | List all event registrations across the campus |
+
+---
+
+## Running Locally
+
+### 1. Prerequisites
+- Node.js (v18+ or v20+)
+- npm (v9+)
+- MongoDB (local service or MongoDB Atlas instance)
+
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/skit-devops-2026/devops-24ESKCS005.git
+cd devops-24ESKCS005
+
+# Install dependencies using Makefile or npm
+make install
+# (or: npm install)
+```
+
+### 3. Environment Configuration
+Create a `.env` file in the root directory using the template provided in `.env.example`:
+```env
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/eventhive
+```
+*(Do not commit your local `.env` file to Git)*
+
+### 4. Start the Application
+```bash
+# Start server using Makefile or npm
+make run
+# (or: npm start)
+```
+The server will start on `http://localhost:5000` (or the configured `PORT`).
+
+---
+
+## Live URL
+
+To be configured and added upon production deployment in Milestone 5.
+
+---
+
+## Health Endpoint
+
+Health check endpoint configuration is planned for Milestone 2 / Milestone 3.
+
+---
+
+## Milestone 1 Hygiene Verification
+
+- [x] `.gitignore` excludes dependencies, environment files, build artifacts, test coverage, and logs.
+- [x] Sensitive variables isolated in `.env` (untracked in Git).
+- [x] Standard DevOps directory structure established (`.github/workflows/`, `scripts/`, `docs/`, `monitoring/`, `k8s/`).
+- [x] Build automation interface provided via `Makefile`.
+- [x] Documentation reflects actual codebase architecture and student details (`24ESKCS005`).
