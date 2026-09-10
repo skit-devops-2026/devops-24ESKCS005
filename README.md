@@ -153,22 +153,47 @@ New Student and Club Coordinator accounts can be registered directly via `/regis
 
 ---
 
+## Deployment
+
+EventHive provides containerized deployment manifests (`Dockerfile`, `docker-compose.yml`) as well as traditional Linux systemd deployment configurations.
+
+### Quick Start with Docker Compose
+```bash
+# Start full application, MongoDB, Prometheus, and Grafana stack
+docker compose up -d --build
+
+# View running containers
+docker compose ps
+```
+Detailed instructions for cloud VMs and Linux services are provided in [docs/deployment.md](docs/deployment.md).
+
+---
+
+## Observability & Monitoring
+
+EventHive exposes real-time application and system metrics compatible with Prometheus:
+
+- **Health Endpoint**: `GET /health` (returns JSON status, uptime, timestamp, and database state)
+- **Prometheus Metrics**: `GET /metrics` (returns standard Prometheus exposition format)
+- **Prometheus Configuration**: Located at [`monitoring/prometheus.yml`](monitoring/prometheus.yml)
+- **Grafana Dashboard**: Importable dashboard specification at [`monitoring/grafana_dashboard.json`](monitoring/grafana_dashboard.json)
+
+For setup, PromQL queries, and Grafana dashboard import steps, see [docs/monitoring.md](docs/monitoring.md).
+
+---
+
 ## Live URL
 
-To be configured and added upon production deployment in Milestone 5.
+- **Deployment Status**: Containerized stack configured and verified.
+- **Production URL**: Local stack hosted at `http://localhost:5000` (live cloud deployment requires active cloud account credentials during viva examination; no external cloud URL is fabricated).
 
 ---
 
-## Health Endpoint
+## DevOps Milestones Status
 
-Health check endpoint configuration is planned for Milestone 2 / Milestone 3.
-
----
-
-## Milestone 1 Hygiene Verification
-
-- [x] `.gitignore` excludes dependencies, environment files, build artifacts, test coverage, and logs.
-- [x] Sensitive variables isolated in `.env` (untracked in Git).
-- [x] Standard DevOps directory structure established (`.github/workflows/`, `scripts/`, `docs/`, `monitoring/`, `k8s/`).
-- [x] Build automation interface provided via `Makefile`.
-- [x] Documentation reflects actual codebase architecture and student details (`24ESKCS005`).
+- [x] **M1 (Repository Hygiene & Scaffolding)**: Completed and verified (`skit-devops-2026/devops-24ESKCS005`).
+- [x] **M2 (Documentation Improvement)**: Completed via PR #1.
+- [x] **M3 (Automated Testing & GitHub Actions CI)**: Completed via PR #2 & PR #3 (24 tests passing).
+- [x] **M4 (Jenkins CI Pipeline)**: Completed via PR #4 (`Jenkinsfile`).
+- [x] **M5 (Docker Containerization)**: Completed via PR #5 (`Dockerfile`, `docker-compose.yml`, `.dockerignore`).
+- [x] **M6 (Deployment & Prometheus Monitoring)**: Completed via PR #6 (`monitoring/prometheus.yml`, `monitoring/grafana_dashboard.json`, `/metrics`, `docs/`).
