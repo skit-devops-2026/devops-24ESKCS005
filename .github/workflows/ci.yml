@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -19,30 +21,28 @@ jobs:
         run: bash scripts/hygiene.sh
 
   # ---------------------------------------------------------------------------
-  # M3 — YOUR WORK STARTS HERE.
-  #
-  # Uncomment the job below and make it pass. Fill in the Makefile targets for
-  # your stack; do not change the target names, because this file calls them.
-  #
-  # The pipeline must genuinely fail when your tests fail. Do not add
-  # continue-on-error or "|| true" to make it green.
+  # M3 — Automated Testing Pipeline
   # ---------------------------------------------------------------------------
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  # build-and-test:
-  #   name: Build and test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #
-  #     # Set up whichever runtime you need, for example:
-  #     # - uses: actions/setup-node@v4
-  #     #   with: { node-version: '20', cache: 'npm' }
-  #     # - uses: actions/setup-python@v5
-  #     #   with: { python-version: '3.12' }
-  #
-  #     - run: make install
-  #     - run: make test
-  #     - run: make build
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test suite
+        run: npm test
+        env:
+          NODE_ENV: test
 
   # ---------------------------------------------------------------------------
   # M4 — Containerization. Uncomment and complete when you get there.
