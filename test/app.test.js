@@ -32,11 +32,28 @@ describe('EventHive Application Test Suite', () => {
     }
   });
 
-  describe('Static Web Portals & Dashboard Routes', () => {
-    const fetchNoKeepAlive = (url, options = {}) => {
-      const headers = { ...(options.headers || {}), connection: 'close' };
-      return fetch(url, { ...options, headers });
+  const crypto = require('crypto');
+  const JWT_SECRET = process.env.JWT_SECRET || 'eventhive-secret-college-key-2026';
+
+  const fetchNoKeepAlive = (url, options = {}) => {
+    const headers = { ...(options.headers || {}), connection: 'close' };
+    return fetch(url, { ...options, headers });
+  };
+
+  const createTestToken = (role) => {
+    const payload = {
+      id: '65f123456789abcdef012345',
+      name: `${role} Test User`,
+      email: `${role}@college.edu`,
+      role: role,
+      exp: Date.now() + 24 * 60 * 60 * 1000
     };
+    const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const signature = crypto.createHmac('sha256', JWT_SECRET).update(payloadB64).digest('base64url');
+    return `${payloadB64}.${signature}`;
+  };
+
+  describe('Static Web Portals & Dashboard Routes', () => {
 
     it('serves the login portal (GET /login.html)', async () => {
       const res = await fetchNoKeepAlive(`${baseUrl}/login.html`);
@@ -77,6 +94,31 @@ describe('EventHive Application Test Suite', () => {
       const res = await fetchNoKeepAlive(`${baseUrl}/pages/club/dashboard.html`);
       assert.strictEqual(res.status, 200);
       assert.ok(res.headers.get('content-type').includes('text/html'));
+    });
+
+    it('serves public homepage portal (GET / and GET /index.html)', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/`);
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.headers.get('content-type').includes('text/html'));
+      const text = await res.text();
+      assert.ok(text.includes('EventHive'), 'Homepage must contain EventHive');
+      assert.ok(text.includes('Aashish Kumawat'), 'Homepage must contain developer attribution');
+    });
+
+    it('serves event details portal (GET /event-details.html)', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/event-details.html`);
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.headers.get('content-type').includes('text/html'));
+      const text = await res.text();
+      assert.ok(text.includes('Event Details'));
+    });
+
+    it('serves HR dashboard portal (GET /pages/hr/dashboard.html)', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/pages/hr/dashboard.html`);
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.headers.get('content-type').includes('text/html'));
+      const text = await res.text();
+      assert.ok(text.includes('HR') || text.includes('Human Resources'));
     });
 
     it('returns HTTP 404 for unmapped endpoints', async () => {
@@ -294,4 +336,147 @@ describe('EventHive Application Test Suite', () => {
       assert.notStrictEqual(passId1, passId2, 'Subsequent generated pass IDs must be unique');
     });
   });
+
+  describe('Role-Based Access Control & Session Token Security', () => {
+    it('rejects login requests missing email or password with HTTP 400', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      assert.strictEqual(res.status, 400);
+      const data = await res.json();
+      assert.ok(data.error.includes('required'));
+    });
+
+    it('redirects unauthenticated direct access to /admin/dashboard', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/admin/dashboard`, {
+        redirect: 'manual'
+      });
+      assert.strictEqual(res.status, 302);
+      assert.ok(res.headers.get('location').includes('login.html'));
+    });
+
+    it('rejects student attempting to access /admin/dashboard with HTTP 403 Forbidden', async () => {
+      const studentToken = createTestToken('student');
+      const res = await fetchNoKeepAlive(`${baseUrl}/admin/dashboard`, {
+        headers: { 'Authorization': `Bearer ${studentToken}` }
+      });
+      assert.strictEqual(res.status, 403);
+      const html = await res.text();
+      assert.ok(html.includes('403') || html.includes('Access Denied'));
+    });
+
+    it('allows admin with valid token to access /admin/dashboard with HTTP 200', async () => {
+      const adminToken = createTestToken('admin');
+      const res = await fetchNoKeepAlive(`${baseUrl}/admin/dashboard`, {
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      assert.strictEqual(res.status, 200);
+      const html = await res.text();
+      assert.ok(html.includes('Admin Dashboard') || html.includes('System Admin Panel'));
+    });
+
+    it('allows student with valid token to access /student/dashboard with HTTP 200', async () => {
+      const studentToken = createTestToken('student');
+      const res = await fetchNoKeepAlive(`${baseUrl}/student/dashboard`, {
+        headers: { 'Authorization': `Bearer ${studentToken}` }
+      });
+      assert.strictEqual(res.status, 200);
+      const html = await res.text();
+      assert.ok(html.includes('Student Dashboard'));
+    });
+
+    it('rejects student attempting to access /faculty/dashboard with HTTP 403', async () => {
+      const studentToken = createTestToken('student');
+      const res = await fetchNoKeepAlive(`${baseUrl}/faculty/dashboard`, {
+        headers: { 'Authorization': `Bearer ${studentToken}` }
+      });
+      assert.strictEqual(res.status, 403);
+      const text = await res.text();
+      assert.ok(text.includes('403'));
+    });
+
+    it('rejects student attempting to access /hod/dashboard with HTTP 403', async () => {
+      const studentToken = createTestToken('student');
+      const res = await fetchNoKeepAlive(`${baseUrl}/hod/dashboard`, {
+        headers: { 'Authorization': `Bearer ${studentToken}` }
+      });
+      assert.strictEqual(res.status, 403);
+      const text = await res.text();
+      assert.ok(text.includes('403'));
+    });
+
+    it('allows hr coordinator with valid token to access /hr/dashboard with HTTP 200', async () => {
+      const hrToken = createTestToken('hr');
+      const res = await fetchNoKeepAlive(`${baseUrl}/hr/dashboard`, {
+        headers: { 'Authorization': `Bearer ${hrToken}` }
+      });
+      assert.strictEqual(res.status, 200);
+      const html = await res.text();
+      assert.ok(html.includes('HR Coordinator Portal') || html.includes('HR Administration'));
+    });
+
+    it('rejects student attempting to access /hr/dashboard with HTTP 403', async () => {
+      const studentToken = createTestToken('student');
+      const res = await fetchNoKeepAlive(`${baseUrl}/hr/dashboard`, {
+        headers: { 'Authorization': `Bearer ${studentToken}` }
+      });
+      assert.strictEqual(res.status, 403);
+      const text = await res.text();
+      assert.ok(text.includes('403'));
+    });
+
+    it('serves admin panel portal (GET /pages/admin/dashboard.html)', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/pages/admin/dashboard.html`);
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.headers.get('content-type').includes('text/html'));
+      const text = await res.text();
+      assert.ok(text.includes('Admin Dashboard'));
+    });
+
+    it('handles logout successfully and clears session', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/api/auth/logout`, {
+        method: 'POST'
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.strictEqual(data.success, true);
+    });
+  });
+
+  describe('Campus Event Lifecycle, Governance & Reminders', () => {
+    it('serves dynamic reminders endpoint (GET /api/reminders)', async () => {
+      const token = createTestToken('admin');
+      const res = await fetchNoKeepAlive(`${baseUrl}/api/reminders`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.success);
+      assert.ok(Array.isArray(data.reminders));
+      assert.ok(typeof data.totalPending === 'number');
+    });
+
+    it('serves campus budget limit configuration (GET /api/config/budget-limit)', async () => {
+      const res = await fetchNoKeepAlive(`${baseUrl}/api/config/budget-limit`);
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.success);
+      assert.ok(typeof data.maxLimit === 'number');
+    });
+
+    it('serves HR overview roster (GET /api/hr/overview)', async () => {
+      const hrToken = createTestToken('hr');
+      const res = await fetchNoKeepAlive(`${baseUrl}/api/hr/overview`, {
+        headers: { 'Authorization': `Bearer ${hrToken}` }
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.success);
+      assert.ok(Array.isArray(data.coordinators));
+      assert.ok(Array.isArray(data.events));
+    });
+  });
 });
+

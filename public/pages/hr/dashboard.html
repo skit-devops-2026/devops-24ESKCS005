@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HR Coordinator Portal — EventHive SKIT</title>
+  <script>
+    const token = sessionStorage.getItem('authToken');
+    const user = JSON.parse(sessionStorage.getItem('userData') || '{}');
+    if (!token || !sessionStorage.getItem('isLoggedIn') || !['hr', 'admin'].includes(user.role)) {
+      sessionStorage.clear();
+      window.location.replace('/login.html');
+    }
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    .navbar { background-color: #1e293b; border-bottom: 1px solid #334155; }
+    .card-dark { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+    .table-dark-custom { --bs-table-bg: #1e293b; --bs-table-color: #f8fafc; --bs-table-border-color: #334155; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-fluid px-3">
+      <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="#">
+        <span class="fs-4 text-warning">⚡</span>
+        <div>
+          <div class="lh-1 fs-5">EventHive</div>
+          <small class="text-secondary fw-normal" style="font-size: 0.72rem;">SKIT Jaipur | HR Administration</small>
+        </div>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-primary" id="hrBadge">HR Coordinator</span>
+        <button class="btn btn-danger btn-sm" onclick="sessionStorage.clear(); fetch('/api/auth/logout', {method: 'POST'}).finally(() => window.location.replace('/login.html'));">
+          <i class="bi bi-box-arrow-right me-1"></i>Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid px-4 py-4">
+    <!-- Header Banner -->
+    <div class="card card-dark p-4 mb-4 border-info border-opacity-25 shadow-sm">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+          <h3 class="fw-bold text-white mb-1">Human Resources & Volunteer Management</h3>
+          <p class="text-secondary mb-0">Oversee student coordinators, club organizers, domain assignments, and staffing rosters across SKIT Jaipur.</p>
+        </div>
+        <div class="badge bg-dark border border-secondary px-3 py-2 text-light" id="hrEmailDisplay"></div>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card card-dark p-3 text-center">
+          <div class="text-secondary small">Total Coordinators</div>
+          <h3 class="fw-bold text-warning mb-0" id="totalCoordinators">0</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-dark p-3 text-center">
+          <div class="text-secondary small">Campus Events</div>
+          <h3 class="fw-bold text-info mb-0" id="totalEvents">0</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-dark p-3 text-center">
+          <div class="text-secondary small">Domains Covered</div>
+          <h3 class="fw-bold text-success mb-0" id="totalDomains">5</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card card-dark p-3 text-center">
+          <div class="text-secondary small">Staffing Status</div>
+          <h3 class="fw-bold text-primary mb-0">Optimal</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coordinators Roster Table -->
+    <div class="card card-dark mb-4">
+      <div class="card-header bg-transparent border-secondary border-opacity-50 py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-white mb-0"><i class="bi bi-people-fill text-info me-2"></i>Active Coordinators & Club Staff</h5>
+        <button class="btn btn-outline-light btn-sm" onclick="loadHrData()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark-custom align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Coordinator Name</th>
+              <th>Email</th>
+              <th>Unique ID</th>
+              <th>Club Domain</th>
+              <th>System Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="coordTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Event Staffing Table -->
+    <div class="card card-dark">
+      <div class="card-header bg-transparent border-secondary border-opacity-50 py-3">
+        <h5 class="fw-bold text-white mb-0"><i class="bi bi-calendar-check text-warning me-2"></i>Event Staffing & Direct Contacts</h5>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark-custom align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Event Title</th>
+              <th>Category</th>
+              <th>Lead Coordinator</th>
+              <th>Contact Email</th>
+              <th>Contact Phone</th>
+            </tr>
+          </thead>
+          <tbody id="eventStaffBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('hrEmailDisplay').textContent = user.email || 'hr@college.edu';
+
+    async function loadHrData() {
+      try {
+        const res = await fetch('/api/hr/overview', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const coords = data.coordinators || [];
+        const events = data.events || [];
+
+        document.getElementById('totalCoordinators').textContent = coords.length;
+        document.getElementById('totalEvents').textContent = events.length;
+
+        const cBody = document.getElementById('coordTableBody');
+        cBody.innerHTML = coords.length === 0 ? '<tr><td colspan="6" class="text-center text-secondary py-3">No coordinators found.</td></tr>' : '';
+        coords.forEach(c => {
+          cBody.innerHTML += `
+            <tr>
+              <td><strong>${c.name}</strong></td>
+              <td class="text-secondary small">${c.email}</td>
+              <td><span class="badge bg-secondary">${c.uniqueId || 'N/A'}</span></td>
+              <td><span class="badge bg-info-subtle text-info-emphasis">${c.domain || 'General'}</span></td>
+              <td><span class="badge bg-primary">${c.role}</span></td>
+              <td><span class="badge bg-success">Active Staff</span></td>
+            </tr>
+          `;
+        });
+
+        const eBody = document.getElementById('eventStaffBody');
+        eBody.innerHTML = events.length === 0 ? '<tr><td colspan="5" class="text-center text-secondary py-3">No events found.</td></tr>' : '';
+        events.forEach(e => {
+          const coord = e.coordinator || {};
+          eBody.innerHTML += `
+            <tr>
+              <td><strong>${e.title}</strong></td>
+              <td><span class="badge bg-primary">${e.category}</span></td>
+              <td>${coord.name || 'Club Lead'}</td>
+              <td class="text-secondary small">${coord.email || 'coordinator@college.edu'}</td>
+              <td class="text-secondary small">${coord.phone || '+91 98765 43210'}</td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error('Failed to load HR data:', err);
+      }
+    }
+    loadHrData();
+  </script>
+</body>
+</html>

@@ -18,64 +18,100 @@
       <small class="text-white-50">Campus Event & Fest Portal</small>
     </div>
     <div class="p-4 p-md-5">
+      <div id="loginAlert" class="alert alert-danger d-none py-2 mb-3 small" role="alert"></div>
       <form id="loginForm">
         <div class="mb-3">
-          <label class="form-label fw-semibold">Login Role</label>
-          <select class="form-select" id="role" required>
-            <option value="" disabled selected>Select Role</option>
-            <option value="student">Student</option>
-            <option value="club">Club Organizer</option>
-            <option value="faculty">Faculty Coordinator</option>
-            <option value="hod">HOD / Admin Authority</option>
-          </select>
+          <label for="email" class="form-label fw-semibold">Email Address</label>
+          <input type="email" class="form-control" id="email" placeholder="name@college.edu" autocomplete="email" required>
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">College Email</label>
-          <input type="email" class="form-control" id="email" placeholder="name@college.edu" required>
+          <label for="password" class="form-label fw-semibold">Password</label>
+          <input type="password" class="form-control" id="password" placeholder="••••••••" autocomplete="current-password" required>
         </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Password</label>
-          <input type="password" class="form-control" id="password" placeholder="••••••••" required>
-        </div>
-        <div class="alert alert-light border p-2 small text-muted mb-3">
-          <strong>Faculty Logins:</strong><br>
-          • NSS: <code>nss.faculty@college.edu</code> (Pass: <code>nss@123</code>)<br>
-          • Sports: <code>sports.faculty@college.edu</code> (Pass: <code>sports@123</code>)<br>
-          • Tech: <code>tech.faculty@college.edu</code> (Pass: <code>tech@123</code>)<br>
-          • Cultural: <code>cultural.faculty@college.edu</code> (Pass: <code>cultural@123</code>)<br>
-          • Robotics: <code>robotics.faculty@college.edu</code> (Pass: <code>robotics@123</code>)<br>
-          <strong>HOD:</strong> <code>hod@college.edu</code> (Pass: <code>hod@123</code>)
-        </div>
-        <button type="submit" class="btn btn-primary w-100 fw-semibold mb-3">Sign In</button>
-        <div class="text-center small">New Student or Club? <a href="register.html">Register here</a></div>
+        <button type="submit" id="submitBtn" class="btn btn-primary w-100 fw-semibold mb-3">Sign In</button>
+        <div class="text-center small text-muted">Don't have an account? <a href="register.html" class="text-decoration-none">Register here</a></div>
       </form>
     </div>
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    const form = document.getElementById('loginForm');
+    const alertBox = document.getElementById('loginAlert');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showError(msg) {
+      alertBox.textContent = msg;
+      alertBox.classList.remove('d-none');
+    }
+
+    function clearError() {
+      alertBox.textContent = '';
+      alertBox.classList.add('d-none');
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('error') === 'auth_required') {
+      showError('Please sign in to access your dashboard.');
+    } else if (urlParams.get('error') === 'session_expired') {
+      showError('Your session has expired. Please sign in again.');
+    }
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearError();
+
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showError('Please enter both email address and password.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing In...';
+
       try {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            role: document.getElementById('role').value,
-            email: document.getElementById('email').value.trim().toLowerCase(),
-            password: document.getElementById('password').value
-          })
+          body: JSON.stringify({ email, password })
         });
         const data = await res.json();
-        if (!res.ok) return alert('❌ ' + data.error);
+
+        if (!res.ok || !data.success) {
+          showError(data.error || 'Invalid email or password.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+          return;
+        }
 
         sessionStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem('authToken', data.token);
         sessionStorage.setItem('userRole', data.user.role);
         sessionStorage.setItem('userIdentifier', data.user.email);
         sessionStorage.setItem('userData', JSON.stringify(data.user));
 
-        window.location.replace(`pages/${data.user.role}/dashboard.html`);
+        const role = (data.user.role || '').toLowerCase();
+        if (role === 'student') {
+          window.location.replace('/student/dashboard');
+        } else if (role === 'coordinator' || role === 'club') {
+          window.location.replace('/coordinator/dashboard');
+        } else if (role === 'faculty' || role === 'teacher') {
+          window.location.replace('/faculty/dashboard');
+        } else if (role === 'hod') {
+          window.location.replace('/hod/dashboard');
+        } else if (role === 'admin') {
+          window.location.replace('/admin/dashboard');
+        } else if (role === 'hr') {
+          window.location.replace('/hr/dashboard');
+        } else {
+          window.location.replace('/student/dashboard');
+        }
       } catch (err) {
-        alert('Server Connection Failed. Make sure Node.js server is running.');
+        showError('Server connection failed. Make sure the Node.js server is running.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
       }
     });
   </script>

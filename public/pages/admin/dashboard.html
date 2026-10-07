@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - EventHive</title>
+  <script>
+    const token = sessionStorage.getItem('authToken');
+    const user = JSON.parse(sessionStorage.getItem('userData') || '{}');
+    if (!token || !sessionStorage.getItem('isLoggedIn') || user.role !== 'admin') {
+      window.location.replace('/login.html');
+    }
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold text-primary" href="#">EventHive <span class="text-white-50 fs-6">| System Admin Panel</span></a>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-light small" id="adminDisplay">Admin: Administrator</span>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <div class="card p-4 bg-dark text-white rounded-3 mb-4 shadow-sm">
+      <h3 class="fw-bold mb-1">Central Administration Console</h3>
+      <p class="text-white-50 mb-0">Platform governance, user account management, and multi-domain event oversight.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-primary text-white p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="small text-white-50 text-uppercase fw-bold">Total Accounts</div>
+              <h2 class="fw-bold mb-0" id="totalUsersCount">--</h2>
+            </div>
+            <i class="bi bi-people-fill fs-1 text-white-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-success text-white p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="small text-white-50 text-uppercase fw-bold">Campus Events</div>
+              <h2 class="fw-bold mb-0" id="totalEventsCount">--</h2>
+            </div>
+            <i class="bi bi-calendar-check fs-1 text-white-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-warning text-dark p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="small text-dark-50 text-uppercase fw-bold">Registrations</div>
+              <h2 class="fw-bold mb-0" id="totalRegsCount">--</h2>
+            </div>
+            <i class="bi bi-ticket-perforated-fill fs-1 text-dark-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-person-lines-fill me-2"></i>Registered System Users</h5>
+        <span class="badge bg-secondary" id="userBadge">Live Database</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Domain</th>
+              <th>College ID</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr><td colspan="5" class="text-center text-muted py-3">Loading system records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('adminDisplay').innerText = `Admin: ${user.name || user.email}`;
+
+    async function loadAdminData() {
+      try {
+        const res = await fetch('/api/admin/stats', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            sessionStorage.clear();
+            window.location.replace('/login.html');
+          }
+          return;
+        }
+        const data = await res.json();
+        document.getElementById('totalUsersCount').innerText = data.totalUsers || 0;
+        document.getElementById('totalEventsCount').innerText = data.totalEvents || 0;
+        document.getElementById('totalRegsCount').innerText = data.totalRegistrations || 0;
+
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '';
+        (data.users || []).forEach(u => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${u.name}</strong></td>
+              <td><code>${u.email}</code></td>
+              <td><span class="badge bg-primary text-uppercase">${u.role}</span></td>
+              <td>${u.domain || 'General'}</td>
+              <td><span class="badge bg-light text-dark border">${u.uniqueId || '--'}</span></td>
+            </tr>
+          `;
+        });
+      } catch (e) {
+        console.error('Failed to load admin metrics:', e);
+      }
+    }
+
+    async function logout() {
+      sessionStorage.clear();
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch(e) {}
+      window.location.replace('/login.html');
+    }
+
+    loadAdminData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EventHive — SKIT Campus Event & Fest Portal</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; }
+.navbar { background-color: #1e293b; border-bottom: 1px solid #334155; }
+.hero { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border-bottom: 1px solid #334155; padding: 40px 0; }
+.card-dark { background-color: #1e293b; border: 1px solid #334155; border-radius: 10px; }
+.filter-btn { border-radius: 20px; font-size: 0.8rem; padding: 4px 12px; border: 1px solid #475569; color: #cbd5e1; }
+.filter-btn.active, .filter-btn:hover { background-color: #3b82f6; border-color: #3b82f6; color: #fff; }
+.stat-pill { background-color: #334155; border-radius: 8px; padding: 8px 12px; text-align: center; }
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg sticky-top">
+<div class="container">
+<a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="/">
+<span class="fs-4 text-warning">⚡</span>
+<div><div class="lh-1 fs-5">EventHive</div><small class="text-secondary fw-normal" style="font-size: 0.7rem;">SKIT Campus Event & Fest Portal</small></div>
+</a>
+<button class="navbar-toggler border-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="navContent">
+<ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+<li class="nav-item"><a class="nav-link text-light" href="#events"><i class="bi bi-calendar-event me-1"></i>Events</a></li>
+<li class="nav-item"><a class="nav-link text-light" href="#workflow"><i class="bi bi-diagram-3 me-1"></i>Workflow</a></li>
+<li class="nav-item"><a class="nav-link text-light" href="#about"><i class="bi bi-info-circle me-1"></i>About</a></li>
+<li class="nav-item"><a class="nav-link text-light" href="#team"><i class="bi bi-person-badge me-1"></i>Developer</a></li>
+</ul>
+<div class="d-flex align-items-center gap-2" id="authNavArea">
+<a href="/login.html" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</a>
+</div>
+</div>
+</div>
+</nav>
+<section class="hero text-center">
+<div class="container">
+<div class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 px-3 py-1 mb-2 rounded-pill">🏛️ Swami Keshvanand Institute of Technology (SKIT Jaipur)</div>
+<h1 class="display-6 fw-bold text-white mb-2">Campus Event & Fest Management</h1>
+<p class="text-secondary mx-auto mb-3 small" style="max-width: 650px;">Centralized portal for authentic SKIT fest events, multi-tier clearances (Faculty & HOD), budget tracking, digital passes, and report auditing.</p>
+<div class="d-flex justify-content-center gap-2 mb-3">
+<a href="#events" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="bi bi-stars me-1"></i>Explore Events</a>
+<a href="/login.html" class="btn btn-outline-light btn-sm px-3"><i class="bi bi-person-lock me-1"></i>Sign In</a>
+</div>
+<div class="row g-2 justify-content-center mx-auto" style="max-width: 680px;">
+<div class="col-6 col-md-3"><div class="stat-pill"><h5 class="fw-bold text-warning mb-0" id="statCount">5+</h5><small class="text-secondary" style="font-size:0.75rem;">Live Events</small></div></div>
+<div class="col-6 col-md-3"><div class="stat-pill"><h5 class="fw-bold text-info mb-0">100%</h5><small class="text-secondary" style="font-size:0.75rem;">Clearances</small></div></div>
+<div class="col-6 col-md-3"><div class="stat-pill"><h5 class="fw-bold text-success mb-0">RBAC</h5><small class="text-secondary" style="font-size:0.75rem;">Portals</small></div></div>
+<div class="col-6 col-md-3"><div class="stat-pill"><h5 class="fw-bold text-primary mb-0">PASS-ID</h5><small class="text-secondary" style="font-size:0.75rem;">Instant Passes</small></div></div>
+</div>
+</div>
+</section>
+<section id="events" class="py-4">
+<div class="container">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+<div><h4 class="fw-bold text-white mb-0">Campus Events & Competitions</h4><small class="text-secondary">Browse fest events and generate entry passes.</small></div>
+<div class="input-group" style="max-width: 240px;">
+<span class="input-group-text bg-dark border-secondary text-secondary py-1"><i class="bi bi-search"></i></span>
+<input type="text" id="searchInput" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="Search events...">
+</div>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-3" id="categoryFilters">
+<button class="btn filter-btn active" data-cat="All">All</button>
+<button class="btn filter-btn" data-cat="Tech">Tech</button>
+<button class="btn filter-btn" data-cat="Non-Tech">Non-Tech</button>
+<button class="btn filter-btn" data-cat="NSS">NSS</button>
+<button class="btn filter-btn" data-cat="Robotics">Robotics</button>
+<button class="btn filter-btn" data-cat="Sports">Sports</button>
+</div>
+<div class="row g-3" id="eventsGrid"><div class="col-12 text-center py-4"><div class="spinner-border text-primary" role="status"></div></div></div>
+</div>
+</section>
+<section id="workflow" class="py-4 bg-dark border-top border-bottom border-secondary border-opacity-25">
+<div class="container text-center">
+<h4 class="fw-bold text-white mb-1">Event Governance Lifecycle</h4>
+<p class="text-secondary small mb-3">Transparent 3-tier workflow from proposal to completion.</p>
+<div class="row g-2">
+<div class="col-md-4"><div class="card card-dark p-3 h-100"><div class="fs-3 text-primary mb-1"><i class="bi bi-pencil-square"></i></div><h6 class="fw-bold text-white mb-1">1. Proposal</h6><small class="text-secondary">Coordinators submit schedule, venue, budget request, and event specs.</small></div></div>
+<div class="col-md-4"><div class="card card-dark p-3 h-100"><div class="fs-3 text-warning mb-1"><i class="bi bi-shield-check"></i></div><h6 class="fw-bold text-white mb-1">2. Faculty & HOD Clearance</h6><small class="text-secondary">Faculty verifies before HOD approves budget and publishes live.</small></div></div>
+<div class="col-md-4"><div class="card card-dark p-3 h-100"><div class="fs-3 text-success mb-1"><i class="bi bi-trophy"></i></div><h6 class="fw-bold text-white mb-1">3. Conduct & Report</h6><small class="text-secondary">Attendees use digital passes; outcomes submitted for HOD closure.</small></div></div>
+</div>
+</div>
+</section>
+<section id="about" class="py-4">
+<div class="container">
+<div class="row g-3 align-items-center">
+<div class="col-lg-6">
+<h4 class="fw-bold text-white mb-2">About EventHive Portal</h4>
+<p class="text-secondary small mb-2">Designed for Swami Keshvanand Institute of Technology (SKIT Jaipur) for annual fests (Pravah), ICI technical sprints, NSS welfare drives, and sports competitions.</p>
+<div class="text-secondary small d-flex flex-column gap-1">
+<div><i class="bi bi-check2 text-success me-1"></i> Multi-Role RBAC: Student, Club, Faculty, HOD, HR, Admin</div>
+<div><i class="bi bi-check2 text-success me-1"></i> Automated Reminders: Real-time action alerts</div>
+<div><i class="bi bi-check2 text-success me-1"></i> Digital Passes: Unique cryptographic ticket IDs</div>
+</div>
+</div>
+<div class="col-lg-6">
+<div class="card card-dark p-3">
+<h6 class="fw-bold text-warning mb-2"><i class="bi bi-building me-1"></i>SKIT Campus Overview</h6>
+<p class="text-secondary small mb-1"><strong class="text-light">Institution:</strong> Swami Keshvanand Institute of Technology, Jaipur</p>
+<p class="text-secondary small mb-1"><strong class="text-light">Location:</strong> Ramnagaria, Jagatpura, Jaipur 302017</p>
+<p class="text-secondary small mb-0"><strong class="text-light">Affiliation:</strong> RTU Kota | Accredited</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="team" class="py-4 bg-dark border-top border-secondary border-opacity-25 text-center">
+<div class="container">
+<h4 class="fw-bold text-white mb-1">Project Developer & Attribution</h4>
+<p class="text-secondary small mb-3">Official B.Tech Capstone Project for Department of Computer Science & Engineering.</p>
+<div class="row justify-content-center">
+<div class="col-md-5">
+<div class="card card-dark p-3 border-primary border-opacity-50">
+<div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-25 rounded-circle text-primary fs-3 mx-auto mb-2" style="width: 50px; height: 50px;"><i class="bi bi-person-fill"></i></div>
+<h5 class="fw-bold text-white mb-0">Aashish Kumawat</h5>
+<div class="badge bg-primary px-2 py-1 mx-auto my-1">Roll No: 24ESKCS005</div>
+<p class="text-light small mb-0">B.Tech — Computer Science & Engineering</p>
+<small class="text-secondary">Swami Keshvanand Institute of Technology (SKIT), Jaipur</small>
+</div>
+</div>
+</div>
+</div>
+</section>
+<footer class="py-3 text-center border-top border-secondary border-opacity-25 text-secondary small">
+<div>© 2026 EventHive — SKIT Jaipur. Developed by Aashish Kumawat (24ESKCS005).</div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let allEvents = [];
+let currentCategory = 'All';
+const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+const userRole = (sessionStorage.getItem('userRole') || '').toLowerCase();
+const authArea = document.getElementById('authNavArea');
+if (isLoggedIn && userRole) {
+const map = { student: '/student/dashboard', coordinator: '/coordinator/dashboard', club: '/coordinator/dashboard', faculty: '/faculty/dashboard', teacher: '/faculty/dashboard', hod: '/hod/dashboard', admin: '/admin/dashboard', hr: '/hr/dashboard' };
+authArea.innerHTML = `<a href="${map[userRole] || '/student/dashboard'}" class="btn btn-primary btn-sm px-3 fw-semibold">Dashboard</a> <button class="btn btn-outline-danger btn-sm" onclick="sessionStorage.clear(); fetch('/api/auth/logout', {method:'POST'}).finally(()=>location.reload());"><i class="bi bi-box-arrow-right"></i></button>`;
+}
+async function fetchEvents() {
+try {
+const res = await fetch('/api/events/live');
+let data = await res.json();
+if (!Array.isArray(data) || data.length === 0) {
+const fb = await fetch('/api/events/club/all');
+data = await fb.json();
+}
+allEvents = Array.isArray(data) ? data : [];
+document.getElementById('statCount').textContent = allEvents.length + '+';
+renderEvents();
+} catch (err) {
+document.getElementById('eventsGrid').innerHTML = '<div class="col-12 text-center py-4 text-danger">Failed to load events.</div>';
+}
+}
+function renderEvents() {
+const q = (document.getElementById('searchInput').value || '').toLowerCase();
+const filtered = allEvents.filter(e => {
+const cat = currentCategory === 'All' || e.category === currentCategory;
+const text = !q || (e.title && e.title.toLowerCase().includes(q)) || (e.venue && e.venue.toLowerCase().includes(q));
+return cat && text;
+});
+const grid = document.getElementById('eventsGrid');
+if (filtered.length === 0) {
+grid.innerHTML = '<div class="col-12 text-center py-4 text-secondary">No matching events found.</div>';
+return;
+}
+grid.innerHTML = filtered.map(e => `
+<div class="col-md-6 col-lg-4">
+<div class="card card-dark h-100 d-flex flex-column">
+<div style="height: 150px; overflow: hidden; border-top-left-radius: 10px; border-top-right-radius: 10px; position: relative;">
+<img src="${e.image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=80'}" alt="${e.title}" style="width: 100%; height: 100%; object-fit: cover;">
+<span class="badge bg-primary position-absolute top-0 start-0 m-2">${e.category}</span>
+<span class="badge bg-success position-absolute top-0 end-0 m-2">${e.status || 'Live'}</span>
+</div>
+<div class="p-3 d-flex flex-column flex-grow-1">
+<h6 class="fw-bold text-white mb-1">${e.title}</h6>
+<div class="text-secondary small mb-2"><div><i class="bi bi-calendar3 me-1 text-info"></i>${e.date}</div><div><i class="bi bi-geo-alt me-1 text-danger"></i>${e.venue}</div></div>
+<p class="text-secondary small mb-2 flex-grow-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${e.description || 'SKIT Campus fest event.'}</p>
+<div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-50 mt-auto">
+<strong class="text-warning small">${e.fee > 0 ? '₹' + e.fee : 'Free'}</strong>
+<div class="d-flex gap-1">
+<a href="/event-details.html?id=${e._id}" class="btn btn-outline-info btn-sm py-0 px-2">Details</a>
+<a href="/pages/student/dashboard.html" class="btn btn-primary btn-sm py-0 px-2">Register</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+`).join('');
+}
+document.getElementById('categoryFilters').addEventListener('click', (e) => {
+if (e.target.dataset.cat) {
+document.querySelectorAll('#categoryFilters .filter-btn').forEach(b => b.classList.remove('active'));
+e.target.classList.add('active');
+currentCategory = e.target.dataset.cat;
+renderEvents();
+}
+});
+document.getElementById('searchInput').addEventListener('input', renderEvents);
+fetchEvents();
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Details — EventHive SKIT</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    .navbar { background-color: #1e293b; border-bottom: 1px solid #334155; }
+    .card-dark { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+    .badge-status { font-size: 0.9rem; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="/">
+        <span class="fs-4 text-warning">⚡</span>
+        <div>
+          <div class="lh-1 fs-5">EventHive</div>
+          <small class="text-secondary fw-normal" style="font-size: 0.72rem;">SKIT Jaipur | Event Details</small>
+        </div>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <a href="/" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Home</a>
+        <a href="/login.html" class="btn btn-primary btn-sm">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <div id="loadingArea" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-secondary mt-2">Loading event specification...</p>
+    </div>
+
+    <div id="detailsArea" style="display: none;">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/" class="text-info text-decoration-none">Home</a></li>
+          <li class="breadcrumb-item"><a href="/#events" class="text-info text-decoration-none">Events</a></li>
+          <li class="breadcrumb-item active text-secondary" id="bcTitle" aria-current="page"></li>
+        </ol>
+      </nav>
+
+      <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+          <div class="card card-dark overflow-hidden mb-4">
+            <img id="dImage" src="" alt="Event Banner" style="width: 100%; height: 320px; object-fit: cover;">
+            <div class="p-4">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-primary fs-6" id="dCategory"></span>
+                  <span class="badge bg-success badge-status" id="dStatus"></span>
+                </div>
+                <div class="text-warning fw-bold fs-5" id="dFee"></div>
+              </div>
+              <h2 class="fw-bold text-white mb-3" id="dTitle"></h2>
+              <div class="row g-3 py-3 border-top border-bottom border-secondary border-opacity-50 mb-4">
+                <div class="col-sm-6">
+                  <div class="text-secondary small">Date & Schedule</div>
+                  <div class="fw-semibold text-light" id="dDate"><i class="bi bi-calendar3 me-1 text-info"></i> </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="text-secondary small">Sanctioned Venue</div>
+                  <div class="fw-semibold text-light" id="dVenue"><i class="bi bi-geo-alt me-1 text-danger"></i> </div>
+                </div>
+              </div>
+              <h5 class="fw-bold text-white mb-2">Event Description & Rules</h5>
+              <p class="text-secondary mb-4" id="dDesc" style="white-space: pre-line;"></p>
+
+              <!-- Final Report Box (if completed or conducted) -->
+              <div id="reportSection" class="p-3 rounded bg-dark border border-secondary border-opacity-50" style="display: none;">
+                <h5 class="fw-bold text-warning mb-2"><i class="bi bi-trophy me-2"></i>Post-Event Outcome & Summary</h5>
+                <p class="text-light small mb-2" id="repSummary"></p>
+                <div class="row g-2 small">
+                  <div class="col-md-6"><strong class="text-success">🥇 Winner:</strong> <span id="repWinners" class="text-secondary"></span></div>
+                  <div class="col-md-6"><strong class="text-info">🥈 Runner-Up:</strong> <span id="repRunners" class="text-secondary"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+          <!-- Registration Card -->
+          <div class="card card-dark p-4 mb-4">
+            <h5 class="fw-bold text-white mb-3">Event Registration</h5>
+            <div class="d-flex justify-content-between text-secondary small mb-2">
+              <span>Max Team Size:</span>
+              <strong class="text-light" id="dTeamSize">1</strong>
+            </div>
+            <div class="d-flex justify-content-between text-secondary small mb-3">
+              <span>Approval Pipeline:</span>
+              <span class="badge bg-success">HOD Sanctioned</span>
+            </div>
+            <a href="/pages/student/dashboard.html" class="btn btn-primary w-100 py-2 fw-semibold mb-2">
+              <i class="bi bi-ticket-perforated me-1"></i> Register Student Pass
+            </a>
+            <small class="text-secondary text-center d-block">Requires active student credentials to sign up.</small>
+          </div>
+
+          <!-- Coordinator Contact Card -->
+          <div class="card card-dark p-4 mb-4">
+            <h5 class="fw-bold text-white mb-3"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Coordinator Desk</h5>
+            <div class="mb-2">
+              <small class="text-secondary d-block">Lead Coordinator:</small>
+              <strong class="text-light" id="cName">Campus Lead</strong>
+            </div>
+            <div class="mb-2">
+              <small class="text-secondary d-block">Email:</small>
+              <span class="text-info small" id="cEmail">coordinator@college.edu</span>
+            </div>
+            <div>
+              <small class="text-secondary d-block">Contact:</small>
+              <span class="text-light small" id="cPhone">+91 98765 43210</span>
+            </div>
+          </div>
+
+          <!-- Budget Transparency Card -->
+          <div class="card card-dark p-4">
+            <h5 class="fw-bold text-white mb-2"><i class="bi bi-cash-stack me-2 text-success"></i>Budget Sanction</h5>
+            <div class="d-flex justify-content-between text-secondary small">
+              <span>Allocated Budget:</span>
+              <strong class="text-success" id="dBudget">₹0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get('id');
+
+    async function loadEvent() {
+      if (!eventId) {
+        document.getElementById('loadingArea').innerHTML = `
+          <div class="alert alert-warning text-center">No event ID specified. <a href="/">Return Home</a></div>
+        `;
+        return;
+      }
+      try {
+        const res = await fetch('/api/events/' + eventId);
+        if (!res.ok) throw new Error('Event not found');
+        const e = await res.json();
+
+        document.getElementById('loadingArea').style.display = 'none';
+        document.getElementById('detailsArea').style.display = 'block';
+
+        document.getElementById('bcTitle').textContent = e.title;
+        document.getElementById('dTitle').textContent = e.title;
+        document.getElementById('dCategory').textContent = e.category;
+        document.getElementById('dStatus').textContent = e.status || (e.isLive ? 'Live' : 'Pipeline');
+        document.getElementById('dFee').textContent = e.fee > 0 ? '₹' + e.fee : 'Free Entry';
+        document.getElementById('dDate').innerHTML = '<i class="bi bi-calendar3 me-1 text-info"></i> ' + e.date;
+        document.getElementById('dVenue').innerHTML = '<i class="bi bi-geo-alt me-1 text-danger"></i> ' + e.venue;
+        document.getElementById('dDesc').textContent = e.description || 'Official SKIT campus event.';
+        document.getElementById('dTeamSize').textContent = (e.maxTeamSize || 1) + ' Members';
+        document.getElementById('dBudget').textContent = '₹' + (e.budget || 0);
+
+        if (e.image) document.getElementById('dImage').src = e.image;
+        else document.getElementById('dImage').src = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80';
+
+        if (e.coordinator) {
+          if (e.coordinator.name) document.getElementById('cName').textContent = e.coordinator.name;
+          if (e.coordinator.email) document.getElementById('cEmail').textContent = e.coordinator.email;
+          if (e.coordinator.phone) document.getElementById('cPhone').textContent = e.coordinator.phone;
+        }
+
+        if (e.finalReport && e.finalReport.summary) {
+          document.getElementById('reportSection').style.display = 'block';
+          document.getElementById('repSummary').textContent = e.finalReport.summary;
+          document.getElementById('repWinners').textContent = e.finalReport.winners || 'N/A';
+          document.getElementById('repRunners').textContent = e.finalReport.runnerUp || 'N/A';
+        }
+      } catch (err) {
+        document.getElementById('loadingArea').innerHTML = `
+          <div class="alert alert-danger text-center">Unable to load event details. <a href="/">Return Home</a></div>
+        `;
+      }
+    }
+    loadEvent();
+  </script>
+</body>
+</html>
