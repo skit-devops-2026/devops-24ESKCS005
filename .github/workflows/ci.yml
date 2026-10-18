@@ -45,32 +45,37 @@ jobs:
           NODE_ENV: test
 
   # ---------------------------------------------------------------------------
-  # M4 — Containerization. Uncomment and complete when you get there.
-  # The push to the registry is what proves your build actually ran, so it is
-  # not optional.
+  # M5 — Containerization & Container Registry Push
   # ---------------------------------------------------------------------------
+  docker:
+    name: Build and push image to GHCR
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  # docker:
-  #   name: Build and push images
-  #   needs: build-and-test
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     packages: write
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - uses: docker/build-push-action@v6
-  #       with:
-  #         context: ./backend
-  #         push: true
-  #         tags: ghcr.io/${{ github.repository }}-backend:${{ github.sha }}
-  #     # ... and the same for ./frontend
+      - name: Set lower case repository name
+        run: |
+          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-  # ---------------------------------------------------------------------------
-  # M5 — Deployment. Add a deploy job here.
-  # ---------------------------------------------------------------------------
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ env.REPO_LOWER }}:latest
+            ghcr.io/${{ env.REPO_LOWER }}:${{ github.sha }}
+
