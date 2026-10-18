@@ -41,13 +41,15 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
   const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
-  res.json({
-    status: 'healthy',
+  const isHealthy = process.env.NODE_ENV === 'test' || dbState === 1;
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'unhealthy',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     database: states[dbState] || 'unknown'
   });
 });
+
 
 // Prometheus metrics endpoint
 app.get('/metrics', (req, res) => {
@@ -103,15 +105,24 @@ app.get('/metrics', (req, res) => {
   res.send(metrics);
 });
 
-// Connect to MongoDB
-if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
-  mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eventhive')
-    .then(() => {
-      console.log('✅ Connected to MongoDB EventHive Database');
-      seedDefaultSystemData();
-    })
-    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+// Connect to MongoDB with automated retry
+function connectWithRetry() {
+  if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
+    const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eventhive';
+    mongoose.connect(mongoUri)
+      .then(() => {
+        console.log('✅ Connected to MongoDB EventHive Database');
+        seedDefaultSystemData();
+      })
+      .catch(err => {
+        console.error('❌ MongoDB Connection Error:', err.message || err);
+        console.log('⏳ Retrying MongoDB connection in 5 seconds...');
+        setTimeout(connectWithRetry, 5000);
+      });
+  }
 }
+connectWithRetry();
+
 
 // --- AUTHENTICATION & TOKEN UTILITIES ---
 function generateToken(user) {
