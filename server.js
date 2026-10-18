@@ -906,7 +906,25 @@ async function seedDefaultSystemData() {
 if (require.main === module) {
   seedDefaultSystemData();
   const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`🚀 EventHive Full-Stack Server running on http://localhost:${PORT}`));
+  const server = app.listen(PORT, () => console.log(`🚀 EventHive Full-Stack Server running on port ${PORT}`));
+
+  const gracefulShutdown = (signal) => {
+    console.log(`Received ${signal}. Initiating graceful shutdown...`);
+    server.close(() => {
+      console.log('HTTP server closed.');
+      if (mongoose.connection.readyState !== 0) {
+        mongoose.connection.close(false).then(() => {
+          console.log('MongoDB connection closed.');
+          process.exit(0);
+        }).catch(() => process.exit(0));
+      } else {
+        process.exit(0);
+      }
+    });
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 app.seedDefaultSystemData = seedDefaultSystemData;
