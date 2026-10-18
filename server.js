@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'eventhive-secret-college-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'eventhive-secret-college-key-2026';
 
 const User = require('./models/User');
 const Event = require('./models/Event');
@@ -108,7 +108,7 @@ app.get('/metrics', (req, res) => {
 // Connect to MongoDB with automated retry
 function connectWithRetry() {
   if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eventhive';
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/eventhive';
     mongoose.connect(mongoUri)
       .then(() => {
         console.log('✅ Connected to MongoDB EventHive Database');
