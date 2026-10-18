@@ -120,11 +120,16 @@ EventHive is designed for flexible deployment across containerized environments 
 
 ---
 
-## 5. Live Application URL
+## 5. Deployment Verification & Status
 
-- **Status**: Self-hosted container stack ready.
-- **Production URL**: `<placeholder: https://eventhive-24eskcs005.college.edu or public cloud URL upon staging provision>`
-  *(No external cloud subscription is attached to the course repository; live demonstration is conducted on localhost / staging host).*
+- **Containerized Stack Status**: Fully functional and verified via Docker Compose and Kubernetes kind cluster.
+- **Verified Local Endpoints**:
+  - Application Web UI: `http://localhost:5000`
+  - Health Endpoint: `http://localhost:5000/health` (HTTP 200, `database: connected`)
+  - Prometheus Metrics: `http://localhost:5000/metrics`
+  - Prometheus UI: `http://localhost:9090`
+  - Grafana Dashboard: `http://localhost:3000`
+- **Public Cloud Hosting Status**: **BLOCKED** pending active cloud provider subscription/credentials (e.g., Render, Railway, AWS, Azure). In accordance with the course academic integrity policy, no synthetic or fabricated cloud URLs are configured.
 
 ---
 

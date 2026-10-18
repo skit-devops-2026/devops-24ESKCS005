@@ -157,12 +157,26 @@ New Student and Club Coordinator accounts can be registered directly via `/regis
 
 EventHive provides containerized deployment manifests (`Dockerfile`, `docker-compose.yml`) as well as traditional Linux systemd deployment configurations.
 
-### Quick Start with Docker Compose
-```bash
-# Start full application, MongoDB, Prometheus, and Grafana stack
-docker compose up -d --build
+### Image Specifications
+- **Local Image**: `eventhive:latest`
+- **Registry Target**: `ghcr.io/skit-devops-2026/devops-24eskcs005:latest`
 
-# View running containers
+### Reproducible Build & Run Commands
+
+```bash
+# 1. Build the production Docker image
+docker build -t eventhive:latest .
+
+# 2. Tag for container registry
+docker tag eventhive:latest ghcr.io/skit-devops-2026/devops-24eskcs005:latest
+
+# 3. Run standalone application container
+docker run -d -p 5000:5000 --name eventhive-app eventhive:latest
+
+# 4. Or launch full application, MongoDB, Prometheus, and Grafana stack
+docker compose up -d
+
+# 5. Verify running containers
 docker compose ps
 ```
 Detailed instructions for cloud VMs and Linux services are provided in [docs/deployment.md](docs/deployment.md).
@@ -175,7 +189,7 @@ EventHive exposes real-time application and system metrics compatible with Prome
 
 - **Health Endpoint**: `GET /health` (returns JSON status, uptime, timestamp, and database state)
 - **Prometheus Metrics**: `GET /metrics` (returns standard Prometheus exposition format)
-- **Prometheus Configuration**: Located at [`monitoring/prometheus.yml`](monitoring/prometheus.yml)
+- **Prometheus Configuration**: Located at [`monitoring/prometheus.yml`](monitoring/prometheus.yml) (scrapes `app:5000/metrics`)
 - **Grafana Dashboard**: Importable dashboard specification at [`monitoring/grafana_dashboard.json`](monitoring/grafana_dashboard.json)
 
 For setup, PromQL queries, and Grafana dashboard import steps, see [docs/monitoring.md](docs/monitoring.md).
@@ -189,6 +203,7 @@ EventHive provides declarative Kubernetes manifests under [`k8s/`](k8s/) for aut
 ### Image & Registry
 - **Image Name**: `ghcr.io/skit-devops-2026/devops-24eskcs005:latest` (or local tag `eventhive:latest`)
 - **Probes**: Configured with Liveness and Readiness probes against `GET /health`
+- **Cluster**: Verified on local kind cluster `eventhive-cluster` (2 app replicas, 1 MongoDB replica, 0 restarts)
 
 ### Deployment Commands
 ```bash
@@ -204,30 +219,35 @@ kubectl apply -f k8s/service.yaml
 ### Verification Commands
 ```bash
 # Verify Pods are Running and Ready
-kubectl get pods
+kubectl get pods -o wide
 
 # Verify Deployments and Services
 kubectl get deployments
 kubectl get services
 ```
 
-Complete setup instructions for local `kind` or `k3d` clusters and NodePort access are documented in [docs/kubernetes.md](docs/kubernetes.md).
+Verified cluster evidence and pod screenshots are documented in [docs/kubernetes.md](docs/kubernetes.md) and [`docs/k8s_pods_evidence.png`](docs/k8s_pods_evidence.png).
 
 ---
 
-## Live URL
+## Deployment & Verification URLs
 
-- **Deployment Status**: Containerized stack configured and verified.
-- **Production URL**: Local stack hosted at `http://localhost:5000` (live cloud deployment requires active cloud account credentials during viva examination; no external cloud URL is fabricated).
+- **Local Application Portal**: `http://localhost:5000`
+- **Application Health Check**: `http://localhost:5000/health` (verified `{"status":"healthy","database":"connected"}`)
+- **Prometheus Metrics**: `http://localhost:5000/metrics`
+- **Prometheus UI**: `http://localhost:9090` (verified active target `http://app:5000/metrics` in state UP)
+- **Grafana Dashboard**: `http://localhost:3000` (User: `admin`, Pass: `admin`)
+- **Kubernetes NodePort**: `http://localhost:30050`
+- **Public Cloud URL**: Staging / external cloud hosting is currently **BLOCKED** pending active cloud provider subscription credentials (per course policy, no synthetic URLs are fabricated).
 
 ---
 
 ## DevOps Milestones Status
 
-- [x] **M1 (Repository Hygiene & Scaffolding)**: Completed and verified (`skit-devops-2026/devops-24ESKCS005`).
-- [x] **M2 (Documentation Improvement)**: Completed via PR #1.
-- [x] **M3 (Automated Testing & GitHub Actions CI)**: Completed via PR #2 & PR #3 (24 tests passing).
-- [x] **M4 (Jenkins CI Pipeline)**: Completed via PR #4 (`Jenkinsfile`).
-- [x] **M5 (Docker Containerization)**: Completed via PR #5 (`Dockerfile`, `docker-compose.yml`, `.dockerignore`).
-- [x] **M6 (Deployment & Prometheus Monitoring)**: Completed via PR #6 (`monitoring/prometheus.yml`, `monitoring/grafana_dashboard.json`, `/metrics`, `docs/`).
-- [x] **M7 (Kubernetes Deployment)**: Completed via PR #7 (`k8s/deployment.yaml`, `k8s/service.yaml`, `k8s/mongodb.yaml`, `docs/kubernetes.md`).
+- [x] **M1 (Repository Hygiene & Scaffolding)**: Completed and verified (`skit-devops-2026/devops-24ESKCS005`). 17 commits across 4 distinct days.
+- [x] **M2 (Documentation Improvement)**: Completed via PR #1 (`README.md`, `docs/`).
+- [x] **M3 (Automated Testing & GitHub Actions CI)**: Completed via PR #2 & PR #3 (41 unit and integration tests passing).
+- [x] **M4 (Jenkins CI Pipeline)**: Completed via PR #4 (`Jenkinsfile` with hygiene, dependencies, and test stages).
+- [x] **M5 (Docker Containerization)**: Completed via PR #5 (`Dockerfile`, `docker-compose.yml`, `.dockerignore`, verified image build `eventhive:latest`). Registry push to GHCR requires user personal access token.
+- [x] **M6 (Deployment & Prometheus Monitoring)**: Completed via PR #6 (`monitoring/prometheus.yml`, `monitoring/grafana_dashboard.json`, `/metrics`, verified targets and Grafana).
+- [x] **M7 (Kubernetes Deployment)**: Completed via PR #7 (`k8s/deployment.yaml`, `k8s/service.yaml`, `k8s/mongodb.yaml`, `docs/kubernetes.md`, verified running on `eventhive-cluster`).

@@ -38,8 +38,18 @@ The `/metrics` endpoint exposes metrics formatted according to the Prometheus te
    ```
 
 3. **Verify Scrape Targets**:
-   - Open browser at `http://localhost:9090/targets`
-   - Verify `eventhive` target shows state **UP** (1/1 up).
+   - Open browser at `http://localhost:9090/targets` or query `/api/v1/targets`.
+   - Verified live active target output:
+     ```json
+     {
+       "scrapePool": "eventhive",
+       "scrapeUrl": "http://app:5000/metrics",
+       "health": "up",
+       "lastError": "",
+       "lastScrapeDuration": 0.0047
+     }
+     ```
+   - Grafana API health verified (`http://localhost:3000/api/health`): `{"database": "ok", "version": "10.4.1"}`.
 
 4. **Example Prometheus Queries (PromQL)**:
    - Request rate per second:

@@ -127,18 +127,21 @@ kubectl rollout status deployment/eventhive-app
 kubectl logs -l app=eventhive --tail=50 -f
 ```
 
-### Expected Output Example:
+### Verified Live Cluster Output:
 ```text
-NAME                             READY   STATUS    RESTARTS   AGE
-eventhive-app-6d8b94f98b-abc12   1/1     Running   0          45s
-eventhive-app-6d8b94f98b-xyz34   1/1     Running   0          45s
-mongodb-7865c58bb7-def56         1/1     Running   0          60s
+NAME                             READY   STATUS    RESTARTS   AGE    IP           NODE
+eventhive-app-86b49877f9-556pt   1/1     Running   0          10m    10.244.0.9   eventhive-cluster-control-plane
+eventhive-app-86b49877f9-kvgc6   1/1     Running   0          10m    10.244.0.8   eventhive-cluster-control-plane
+mongodb-7dd64bd7d6-g4kqh         1/1     Running   0          12m    10.244.0.6   eventhive-cluster-control-plane
 
-NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
-eventhive-service   NodePort    10.96.120.45     <none>        5000:30050/TCP   45s
-kubernetes          ClusterIP   10.96.0.1        <none>        443/TCP          2m
-mongodb-service     ClusterIP   10.96.180.12     <none>        27017/TCP        60s
+NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+eventhive-service   NodePort    10.96.123.26    <none>        5000:30050/TCP   12m
+kubernetes          ClusterIP   10.96.0.1       <none>        443/TCP          50m
+mongodb-service     ClusterIP   10.96.232.180   <none>        27017/TCP        12m
 ```
+
+### Verified Cluster Pods Evidence:
+![Kubernetes Pods Evidence](k8s_pods_evidence.png)
 
 ---
 
