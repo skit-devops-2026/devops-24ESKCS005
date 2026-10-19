@@ -251,3 +251,6 @@ Verified cluster evidence and pod screenshots are documented in [docs/kubernetes
 - [x] **M5 (Docker Containerization)**: Completed via PR #5 (`Dockerfile`, `docker-compose.yml`, `.dockerignore`, verified image build `eventhive:latest`). Registry push to GHCR requires user personal access token.
 - [x] **M6 (Deployment & Prometheus Monitoring)**: Completed via PR #6 (`monitoring/prometheus.yml`, `monitoring/grafana_dashboard.json`, `/metrics`, verified targets and Grafana).
 - [x] **M7 (Kubernetes Deployment)**: Completed via PR #7 (`k8s/deployment.yaml`, `k8s/service.yaml`, `k8s/mongodb.yaml`, `docs/kubernetes.md`, verified running on `eventhive-cluster`).
+
+## Live URL
+https://devops-24eskcs005-1.onrender.com
